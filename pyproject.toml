@@ -1,0 +1,104 @@
+[project]
+name = "querymind"
+version = "0.1.0"
+description = "Enterprise AI-to-SQL Conversational BI Platform"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    # Web framework
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "python-multipart>=0.0.9",
+    "httpx>=0.27.0",
+    "sse-starlette>=2.1.0",
+    "websockets>=13.0",
+
+    # LangChain / LangGraph
+    "langchain>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "langchain-community>=0.3.0",
+    "langgraph>=0.2.0",
+    "langgraph-checkpoint-postgres>=2.0.0",
+
+    # LLM / Embeddings (via OpenRouter)
+    "openai>=1.50.0",
+    "tiktoken>=0.7.0",
+
+    # Vector DB
+    "qdrant-client[fastembed]>=1.11.0",
+
+    # Relational DB
+    "asyncpg>=0.29.0",
+    "sqlalchemy[asyncio]>=2.0.0",
+    "alembic>=1.13.0",
+    "psycopg2-binary>=2.9.0",
+
+    # Redis
+    "redis>=5.0.0",
+    "hiredis>=3.0.0",
+
+    # Data connectors
+    "snowflake-connector-python>=3.12.0",
+    "google-cloud-bigquery>=3.25.0",
+    "motor>=3.5.0",
+    "pymongo>=4.8.0",
+    "duckdb>=1.1.0",
+    "pandas>=2.2.0",
+    "pyarrow>=17.0.0",
+
+    # Security / Crypto
+    "cryptography>=43.0.0",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "pydantic-settings>=2.5.0",
+
+    # Observability
+    "langfuse>=2.50.0",
+    "prometheus-client>=0.21.0",
+
+    # Utilities
+    "pydantic>=2.9.0",
+    "python-dotenv>=1.0.0",
+    "tenacity>=9.0.0",
+    "structlog>=24.4.0",
+    "rich>=13.8.0",
+    "typer>=0.12.0",
+    "aiofiles>=24.1.0",
+    "python-ulid>=2.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=5.0.0",
+    "httpx>=0.27.0",
+    "ruff>=0.6.0",
+    "mypy>=1.11.0",
+    "pre-commit>=3.8.0",
+    "locust>=2.31.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = false
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["backend/tests"]

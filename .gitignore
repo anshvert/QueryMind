@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# uv
+.uv/
+
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+
+# Secrets / credentials
+gcp-credentials.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+
+# mypy / ruff
+.mypy_cache/
+.ruff_cache/
+
+# Logs
+*.log
+logs/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.next/
+frontend/build/
+
+# Docker
+*.tar
+
+# Kubernetes
+infra/k8s/secrets/
+
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+
+# Misc
+*.bak
+*.tmp
+tmp/
+*.docx
