@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
-from backend.api.routers import sources, chat, health
+from backend.api.routers import sources, chat, health, query
 from backend.core.config import settings
 from backend.core.database import engine, Base
 from backend.core.redis_client import get_redis
@@ -62,7 +62,7 @@ async def _ensure_qdrant_collections(qdrant):
     collections = await qdrant.get_collections()
     existing = {c.name for c in collections.collections}
 
-    vector_config = VectorParams(size=1536, distance=Distance.COSINE)
+    vector_config = VectorParams(size=384, distance=Distance.COSINE)
 
     for collection_name in [
         settings.QDRANT_COLLECTION_SCHEMA,
@@ -101,6 +101,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router, tags=["health"])
     app.include_router(sources.router, prefix="/api/v1/sources", tags=["sources"])
     app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
+    app.include_router(query.router, prefix="/api/v1/query", tags=["query"])
     return app
 
 

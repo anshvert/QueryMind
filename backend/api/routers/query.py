@@ -1,7 +1,8 @@
 """
-Day 1 chat endpoint: NL question -> SQL generation.
+Query endpoint: NL question -> SQL generation + execution + summary.
 """
 from uuid import UUID
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
@@ -16,20 +17,22 @@ from backend.security.encryption import decrypt_credentials
 router = APIRouter()
 
 
-class ChatRequest(BaseModel):
+class QueryRequest(BaseModel):
     source_id: UUID
     question: str = Field(min_length=1)
 
 
-class ChatResponse(BaseModel):
+class QueryResponse(BaseModel):
     source_id: str
     question: str
     sql: str
+    results: Optional[list[dict[str, Any]]] = None
+    summary: str
     reasoning: list[str]
 
 
-@router.post("", response_model=ChatResponse)
-async def chat(payload: ChatRequest, db: AsyncSession = Depends(get_db)):
+@router.post("", response_model=QueryResponse)
+async def execute_query(payload: QueryRequest, db: AsyncSession = Depends(get_db)):
     row = await db.execute(
         select(DataSourceModel).where(
             DataSourceModel.id == payload.source_id,
@@ -47,9 +50,12 @@ async def chat(payload: ChatRequest, db: AsyncSession = Depends(get_db)):
         credentials=credentials,
         question=payload.question,
     )
-    return ChatResponse(
+    
+    return QueryResponse(
         source_id=str(source.id),
         question=payload.question,
-        sql=result["sql"],
-        reasoning=result["reasoning"],
+        sql=result.get("sql", ""),
+        results=result.get("results"),
+        summary=result.get("summary", ""),
+        reasoning=result.get("reasoning", []),
     )
