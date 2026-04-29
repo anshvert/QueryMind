@@ -13,6 +13,7 @@ from backend.connectors import get_connector
 from backend.core.database import get_db
 from backend.schema_registry.models import DataSourceModel, SchemaSnapshotModel
 from backend.security.encryption import decrypt_credentials, encrypt_credentials
+from backend.schema_registry.embeddings import embed_and_store_schema
 
 router = APIRouter()
 
@@ -120,6 +121,9 @@ async def crawl_schema(source_id: UUID, db: AsyncSession = Depends(get_db)):
         schema = await connector.get_schema()
     finally:
         await connector.disconnect()
+
+    # Day 2: Semantic Schema Embedding
+    await embed_and_store_schema(schema)
 
     snapshot = SchemaSnapshotModel(
         source_id=source.id,
