@@ -99,18 +99,22 @@ async def retrieve_relevant_tables(source_id: str, question: str, top_k: int = 5
         
     vector = embeddings[0].tolist()
     
-    results = await qdrant.search(
-        collection_name=collection_name,
-        query_vector=vector,
-        query_filter={
-            "must": [
-                {
-                    "key": "source_id",
-                    "match": {"value": str(source_id)}
-                }
-            ]
-        },
-        limit=top_k
-    )
-    
-    return [hit.payload for hit in results if hit.payload]
+    from qdrant_client.models import Filter, FieldCondition, MatchValue
+    try:
+        results = await qdrant.query_points(
+            collection_name=collection_name,
+            query=vector,
+            query_filter=Filter(
+                must=[
+                    FieldCondition(
+                        key="source_id",
+                        match=MatchValue(value=str(source_id))
+                    )
+                ]
+            ),
+            limit=top_k
+        )
+        return [hit.payload for hit in results.points if hit.payload]
+    except Exception as exc:
+        logger.warning("schema_retrieval_failed", source_id=source_id, error=str(exc))
+        return []

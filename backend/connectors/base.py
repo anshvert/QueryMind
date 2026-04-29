@@ -47,7 +47,8 @@ class TableMeta:
             fk = f" REFERENCES {col.references}" if col.is_foreign_key and col.references else ""
             null = "" if col.nullable else " NOT NULL"
             col_lines.append(f"  {col.name} {col.data_type}{pk}{fk}{null}")
-        return f"CREATE TABLE {self.schema}.{self.name} (\n" + ",\n".join(col_lines) + "\n);"
+        table_ref = f"{self.schema}.{self.name}" if self.schema else self.name
+        return f"CREATE TABLE {table_ref} (\n" + ",\n".join(col_lines) + "\n);"
 
 
 @dataclass

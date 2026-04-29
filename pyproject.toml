@@ -57,6 +57,9 @@ dependencies = [
     "langfuse>=2.50.0",
     "prometheus-client>=0.21.0",
 
+    # MCP (Model Context Protocol)
+    "mcp>=1.0.0",
+
     # Utilities
     "pydantic>=2.9.0",
     "python-dotenv>=1.0.0",

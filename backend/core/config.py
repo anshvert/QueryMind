@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     QDRANT_COLLECTION_SCHEMA: str = "schema_embeddings"
     QDRANT_COLLECTION_MEMORY: str = "user_memory"
     QDRANT_COLLECTION_QUERY_CACHE: str = "query_cache"
+    QDRANT_TIMEOUT_SECONDS: int = 10
 
     # --- OpenRouter (LLM) ---
     OPENROUTER_API_KEY: str = ""
@@ -48,6 +49,7 @@ class Settings(BaseSettings):
     LLM_SQL_MODEL: str = "anthropic/claude-sonnet-4-5"
     LLM_FAST_MODEL: str = "openai/gpt-4o-mini"
     LLM_EMBEDDING_MODEL: str = "openai/text-embedding-3-small"
+    OPENROUTER_TIMEOUT_SECONDS: int = 30
 
     # --- LangFuse ---
     LANGFUSE_PUBLIC_KEY: str = ""

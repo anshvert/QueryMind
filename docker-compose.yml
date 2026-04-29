@@ -14,9 +14,9 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./infra/postgres/setup.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U querymind -d querymind"]
+      test: [ "CMD-SHELL", "pg_isready -U querymind -d querymind" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -32,7 +32,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,14 +48,14 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:6333/healthz || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:6333/healthz || exit 1" ]
       interval: 15s
       timeout: 10s
       retries: 5
 
   # ─── LangFuse (LLM Observability) ────────────────────────────────────────────
   langfuse-server:
-    image: langfuse/langfuse:latest
+    image: langfuse/langfuse:2
     container_name: querymind-langfuse
     restart: unless-stopped
     depends_on:
@@ -82,7 +82,7 @@ services:
     volumes:
       - langfuse_db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U langfuse -d langfuse"]
+      test: [ "CMD-SHELL", "pg_isready -U langfuse -d langfuse" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -95,7 +95,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infra/prometheus/prom.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"

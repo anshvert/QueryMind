@@ -36,9 +36,21 @@ class DuckDBFileConnector(DataSource):
         file_paths = self.credentials.get("file_paths") or [self.credentials["file_path"]]
 
         for fp in file_paths:
-            path = Path(fp)
-            if not path.exists():
-                raise FileNotFoundError(f"File not found: {fp}")
+            is_url = fp.startswith("http://") or fp.startswith("https://")
+            
+            if is_url:
+                from urllib.parse import urlparse
+                import posixpath
+                parsed = urlparse(fp)
+                path = Path(posixpath.basename(parsed.path))
+                try:
+                    self._conn.execute("INSTALL httpfs; LOAD httpfs;")
+                except Exception:
+                    pass
+            else:
+                path = Path(fp)
+                if not path.exists():
+                    raise FileNotFoundError(f"File not found: {fp}")
 
             table_name = path.stem.replace(" ", "_").replace("-", "_").lower()
             ext = path.suffix.lower()
