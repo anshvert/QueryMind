@@ -213,7 +213,7 @@ export default function DashboardPanel({ dashboardSpec, data, loading }) {
   }
 
   const showKPIs = data?.length === 1;
-  const hasContent = (charts.length && data?.length > 1) || showKPIs || data?.length;
+  const hasContent = Boolean((charts.length > 0 && data?.length > 1) || showKPIs || data?.length > 0);
 
   return (
     <section className="dashboard-panel">

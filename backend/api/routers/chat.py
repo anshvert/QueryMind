@@ -136,16 +136,20 @@ async def chat(payload: ChatRequest, db: AsyncSession = Depends(get_db)):
         async for step_output in graph.astream(initial_state, config=config):
             for node_name, state_update in step_output.items():
                 before = _state_view(final_state)
-                logger.info(f"--- Completed Node: {node_name} ---")
-                if "reasoning" in state_update and state_update["reasoning"]:
-                    logger.info(f"Reasoning: {state_update['reasoning'][-1]}")
-                if "error" in state_update and state_update["error"]:
-                    logger.error(f"Error encountered: {state_update['error']}")
-                
+                logger.info("⚡ node_complete", node=node_name,
+                            intent=state_update.get("intent"),
+                            has_sql=bool(state_update.get("sql")),
+                            has_results=bool(state_update.get("results")),
+                            has_summary=bool(state_update.get("summary")),
+                            error=state_update.get("error"),
+                            reasoning_tail=(state_update.get("reasoning") or [])[-1:],
+                            )
+                if state_update.get("error"):
+                    logger.error("node_error", node=node_name, error=state_update["error"])
+
                 # keep track of final state
                 final_state.update(state_update)
                 after = _state_view(final_state)
-                logger.info("node_state_transition", node=node_name, before=before, after=after)
                 if trace:
                     try:
                         trace.event(
@@ -174,6 +178,10 @@ async def chat(payload: ChatRequest, db: AsyncSession = Depends(get_db)):
             logger.warning("langfuse_trace_finalize_failed", error=str(exc))
 
     await _log_audit(db, payload, result, source.id, thread_id)
+
+    if result.get("error"):
+        logger.error("chat_graph_failed", error=result["error"], thread_id=thread_id)
+        raise HTTPException(status_code=500, detail=result["error"])
 
     return ChatResponse(
         source_id=str(source.id),

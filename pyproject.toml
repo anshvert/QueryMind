@@ -46,7 +46,7 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     "pydantic-settings>=2.5.0",
     # Observability
-    "langfuse>=2.50.0",
+    "langfuse~=2.31.0",
     "prometheus-client>=0.21.0",
     # MCP (Model Context Protocol)
     "mcp>=1.0.0",
