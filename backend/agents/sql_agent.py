@@ -69,11 +69,23 @@ async def _generate_sql_node(state: AgentState) -> AgentState:
     client = _build_client()
     
     system_prompt = (
-        "You are an expert SQL architect. Return ONLY valid, read-only SQL.\n"
-        "Never generate INSERT/UPDATE/DELETE/DDL or any Markdown formatting around the SQL.\n"
+        "You are an expert data architect. Return ONLY a valid query payload for the target database.\n"
+        "Never generate INSERT/UPDATE/DELETE/DDL or any Markdown formatting around the query.\n"
         f"Dialect: {state['source_type']}\n\n"
-        f"Schema:\n{state['schema_context']}\n"
     )
+    
+    if state["source_type"] == "mongodb":
+        system_prompt += (
+            "CRITICAL FOR MONGODB: You MUST return a pure JSON string representing an aggregation pipeline.\n"
+            "The JSON must have exactly two keys: 'collection' (string) and 'pipeline' (array of stages).\n"
+            "Example:\n"
+            '{"collection": "orders", "pipeline": [{"$match": {"status": "completed"}}, {"$group": {"_id": "$customer_id", "total": {"$sum": "$amount"}}}]}\n'
+            "Return ONLY this JSON object. No markdown, no explanations, no `db.collection.aggregate` syntax.\n"
+        )
+    else:
+        system_prompt += "Return ONLY valid, read-only SQL.\n"
+        
+    system_prompt += f"\nSchema:\n{state['schema_context']}\n"
     
     user_prompt = f"Question: {state['question']}\n"
     
@@ -85,18 +97,26 @@ async def _generate_sql_node(state: AgentState) -> AgentState:
         )
         state["reasoning"].append(f"Attempting to fix SQL. Retry: {state['retry_count'] + 1}")
 
-    completion = await client.chat.completions.create(
-        model=settings.LLM_SQL_MODEL,
-        messages=[
+    kwargs = {
+        "model": settings.LLM_SQL_MODEL,
+        "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        temperature=0.1,
-    )
+        "temperature": 0.1,
+    }
+    
+    if state["source_type"] == "mongodb":
+        kwargs["response_format"] = {"type": "json_object"}
+
+    completion = await client.chat.completions.create(**kwargs)
     
     sql = (completion.choices[0].message.content or "").strip()
     if sql.startswith("```"):
-        sql = sql.replace("```sql", "").replace("```", "").strip()
+        sql = sql.replace("```sql\n", "").replace("```sql", "")
+        sql = sql.replace("```json\n", "").replace("```json", "")
+        sql = sql.replace("```\n", "").replace("```", "")
+        sql = sql.strip()
         
     state["sql"] = sql
     state["error"] = None # clear error after generation
