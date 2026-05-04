@@ -77,3 +77,5 @@ infra/terraform/*.tfstate.backup
 *.tmp
 tmp/
 *.docx
+*.deb
+cloudflared

@@ -4,7 +4,7 @@ import ChatPanel from "./components/ChatPanel/ChatPanel";
 import DashboardPanel from "./components/DashboardPanel/DashboardPanel";
 import "./styles.css";
 
-const API_BASE = "http://localhost:8000/api/v1";
+const API_BASE = "/api/v1";
 
 async function fetchSources() {
   const res = await fetch(`${API_BASE}/sources`);
@@ -66,15 +66,32 @@ function useResizable(initialPx = 420, min = 280, max = 720) {
 
 export { ReactMarkdown, fetchSources };
 export default function App() {
-  const [messages,   setMessages]   = useState([]);
-  const [dashSpec,   setDashSpec]   = useState(null);
-  const [resultRows, setResultRows] = useState([]);
+  const [messages,   setMessages]   = useState(() => JSON.parse(localStorage.getItem('qm_msgs') || '[]'));
+  const [dashSpec,   setDashSpec]   = useState(() => JSON.parse(localStorage.getItem('qm_dash') || 'null'));
+  const [resultRows, setResultRows] = useState(() => JSON.parse(localStorage.getItem('qm_rows') || '[]'));
   const [loading,    setLoading]    = useState(false);
-  const [threadId,   setThreadId]   = useState(null);
+  const [threadId,   setThreadId]   = useState(() => localStorage.getItem('qm_thread') || null);
   const [sources,    setSources]    = useState([]);
-  const [sourceId,   setSourceId]   = useState("");
+  const [sourceId,   setSourceId]   = useState(() => localStorage.getItem('qm_source') || "");
 
   const [panelWidth, onDividerDown] = useResizable(420, 280, 760);
+
+  // Sync state to localStorage
+  useEffect(() => {
+    localStorage.setItem('qm_msgs', JSON.stringify(messages));
+    localStorage.setItem('qm_dash', JSON.stringify(dashSpec));
+    localStorage.setItem('qm_rows', JSON.stringify(resultRows));
+    if (threadId) localStorage.setItem('qm_thread', threadId);
+    if (sourceId) localStorage.setItem('qm_source', sourceId);
+  }, [messages, dashSpec, resultRows, threadId, sourceId]);
+
+  const clearSession = () => {
+    localStorage.clear();
+    setMessages([]);
+    setDashSpec(null);
+    setResultRows([]);
+    setThreadId(null);
+  };
 
   // Load sources on mount
   useEffect(() => {
@@ -128,6 +145,12 @@ export default function App() {
           ) : (
             <span>No active session</span>
           )}
+          <button 
+            onClick={clearSession}
+            style={{ marginLeft: '12px', background: 'transparent', border: '1px solid #334155', color: '#94a3b8', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', padding: '2px 8px' }}
+          >
+            Clear Session
+          </button>
         </div>
       </header>
 
