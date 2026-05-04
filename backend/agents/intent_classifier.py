@@ -58,14 +58,26 @@ async def intent_classifier_node(state: QueryMindState) -> QueryMindState:
         timeout=settings.OPENROUTER_TIMEOUT_SECONDS,
     )
     
+    history_lines = []
+    for msg in state.get("messages", [])[:-1]: # Exclude the current question
+        # Handle both raw tuples and BaseMessage objects from LangGraph
+        role = "User" if getattr(msg, "type", msg[0] if isinstance(msg, tuple) else "user") in ("human", "user") else "AI"
+        content = getattr(msg, "content", msg[1] if isinstance(msg, tuple) else str(msg))
+        history_lines.append(f"{role}: {content}")
+    chat_history = "\n".join(history_lines) if history_lines else "No previous conversation."
+
     prompt = f"""
 You are the Intent Classifier for QueryMind, an Enterprise AI-to-SQL platform.
-Analyze the user's question and determine the intent.
+Analyze the user's latest question and determine the intent, keeping the conversation history in mind.
 User's long term preferences: {state['long_term_preferences']}
 
-User Question: "{state['question']}"
+Conversation History:
+{chat_history}
 
-If the question is extremely vague or lacks enough context to query a database, set confidence low and intent to 'clarification'.
+Latest User Question: "{state['question']}"
+
+If the question is extremely vague but makes sense in the context of the conversation history, treat it as a valid query.
+If it lacks context entirely, set confidence low and intent to 'clarification'.
 If it asks for a chart/graph/dashboard, set intent to 'dashboard'.
 Otherwise, set 'data_query'.
 """

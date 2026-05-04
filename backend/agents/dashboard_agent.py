@@ -71,7 +71,14 @@ Rules:
 4. Output raw JSON only.
 """
 
-    user_prompt = f"Question: {question}\nColumns: {columns}\nSample Data: {json.dumps(sample_data, default=str)}"
+    history_lines = []
+    for msg in state.get("messages", [])[:-1]:
+        role = "User" if getattr(msg, "type", msg[0] if isinstance(msg, tuple) else "user") in ("human", "user") else "AI"
+        content = getattr(msg, "content", msg[1] if isinstance(msg, tuple) else str(msg))
+        history_lines.append(f"{role}: {content}")
+    chat_history = "\n".join(history_lines) if history_lines else "No previous conversation."
+
+    user_prompt = f"Conversation History:\n{chat_history}\n\nLatest Question: {question}\nColumns: {columns}\nSample Data: {json.dumps(sample_data, default=str)}"
 
     try:
         completion = await client.chat.completions.create(

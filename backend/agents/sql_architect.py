@@ -46,7 +46,14 @@ async def sql_architect_node(state: QueryMindState) -> QueryMindState:
             f"User Preferences: {state['long_term_preferences']}"
         )
 
-    user_prompt = f"Question: {state['question']}\n"
+    history_lines = []
+    for msg in state.get("messages", [])[:-1]: # Exclude the current question
+        role = "User" if getattr(msg, "type", msg[0] if isinstance(msg, tuple) else "user") in ("human", "user") else "AI"
+        content = getattr(msg, "content", msg[1] if isinstance(msg, tuple) else str(msg))
+        history_lines.append(f"{role}: {content}")
+    chat_history = "\n".join(history_lines) if history_lines else "No previous conversation."
+
+    user_prompt = f"Conversation History:\n{chat_history}\n\nLatest Question: {state['question']}\n"
 
     # Self-correction logic
     if state.get("error") and state.get("sql"):
